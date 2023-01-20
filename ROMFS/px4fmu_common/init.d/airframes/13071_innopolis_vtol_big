@@ -128,7 +128,7 @@ param set-default MAV_1_RATE 2880
 param set-default MAV_RADIO_ID 0
 param set-default SER_TEL2_BAUD 57600
 
-set MAV_TYPE 22
+param set-default MAV_TYPE 22
 
 set MIXER inno_vtol_big_AAERT
 set PWM_OUT 1234
