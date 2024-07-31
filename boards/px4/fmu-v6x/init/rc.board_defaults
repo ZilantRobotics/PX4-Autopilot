@@ -27,3 +27,9 @@ else
 fi
 
 safety_button start
+
+if param greater -s CYPHAL_ENABLE 0
+then
+	ifup can0
+	ifup can1
+fi
