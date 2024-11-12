@@ -1,0 +1,62 @@
+name: Build Project
+
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container:
+      image: px4io/px4-dev-nuttx-focal:2022-08-12
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build v5 cyphal
+        run: make px4_fmu-v5_cyphal
+        continue-on-error: true   # Hack: it has wrong Cyphal DSDL and fails
+      - name: Remove dsdlc_generated folder
+        run: rm -rf build/px4_fmu-v5_cyphal/src/drivers/cyphal/dsdlc_generated
+      - name: Clone dsdlc_generated repository
+        run: git clone https://github.com/PonomarevDA/dsdlc_generated.git build/px4_fmu-v5_cyphal/src/drivers/cyphal/dsdlc_generated
+      - name: Build v5 cyphal
+        run: make px4_fmu-v5_cyphal
+
+      - name: Build v6x cyphal
+        run: make px4_fmu-v6x_cyphal
+        continue-on-error: true   # Hack: it has wrong Cyphal DSDL and fails
+      - name: Remove dsdlc_generated folder
+        run: rm -rf build/px4_fmu-v6x_cyphal/src/drivers/cyphal/dsdlc_generated
+      - name: Clone dsdlc_generated repository
+        run: git clone https://github.com/PonomarevDA/dsdlc_generated.git build/px4_fmu-v6x_cyphal/src/drivers/cyphal/dsdlc_generated
+      - name: Build v6x cyphal
+        run: make px4_fmu-v6x_cyphal
+
+      - name: Run v6c cyphal
+        run: make px4_fmu-v6c_cyphal
+        continue-on-error: true   # Hack: it has wrong Cyphal DSDL and fails
+      - name: Remove dsdlc_generated folder
+        run: rm -rf build/px4_fmu-v6c_cyphal/src/drivers/cyphal/dsdlc_generated
+      - name: Clone dsdlc_generated repository
+        run: git clone https://github.com/PonomarevDA/dsdlc_generated.git build/px4_fmu-v6c_cyphal/src/drivers/cyphal/dsdlc_generated
+      - name: Run v6c cyphal
+        run: make px4_fmu-v6c_cyphal
+
+      - name: Build v5
+        run: make px4_fmu-v5
+
+      - name: Build v6x
+        run: make px4_fmu-v6x
+
+      - name: Run v6c
+        run: make px4_fmu-v6c
+
+      - name: Deploy binaries to Telegram
+        if: github.ref == 'refs/heads/cyphal-based-on-main-2024.11.11' && github.repository == 'PonomarevDA/PX4-Autopilot'
+        run: ./Tools/deploy_release_to_telegram.py --bot-token ${{ secrets.TELEGRAM_BOT_TOKEN }} --chat-id ${{ secrets.TELEGRAM_CHAT_ID }}
